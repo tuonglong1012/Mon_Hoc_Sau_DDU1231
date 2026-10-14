@@ -5,12 +5,13 @@ from pathlib import Path
 
 import numpy as np
 from docx import Document
-from docx.enum.section import WD_ORIENT
+from docx.enum.section import WD_ORIENT, WD_SECTION
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
+from PIL import Image
 
 import bai1_logistic_tre_so_sinh as bai1
 import bai2_logistic_danh_gia_phim as bai2
@@ -22,6 +23,7 @@ TEN_FILE = "BT02_ComputationGraph_VoTuongLong_3123580023.docx"
 REPO = "https://github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231/tree/BT02_ComputationGraph"
 THU_MUC = Path(__file__).resolve().parent
 MAU_TIEU_DE = RGBColor(0x0D, 0x47, 0xA1)
+LOGO = THU_MUC / "hinh" / "logoSGU.jpg"
 
 
 def f(x, n=6):
@@ -165,33 +167,83 @@ def khoi_code(doc, ma):
     doc.add_paragraph()
 
 
+def cat_logo():
+    with Image.open(LOGO) as anh:
+        anh = anh.convert("RGB")
+        mat_na = Image.eval(anh.convert("L"), lambda p: 255 if p < 235 else 0)
+        khung = mat_na.getbbox()
+        anh = anh.crop(khung)
+        canh = max(anh.size)
+        vuong = Image.new("RGB", (canh, canh), "white")
+        vuong.paste(anh, ((canh - anh.width) // 2, (canh - anh.height) // 2))
+        duong_dan = THU_MUC / "hinh" / "logoSGU_cat.png"
+        vuong.save(duong_dan)
+    return duong_dan
+
+
+def khung_trang(section):
+    vien = OxmlElement("w:pgBorders")
+    vien.set(qn("w:offsetFrom"), "page")
+    for canh in ("top", "left", "bottom", "right"):
+        el = OxmlElement(f"w:{canh}")
+        el.set(qn("w:val"), "thinThickSmallGap")
+        el.set(qn("w:sz"), "24")
+        el.set(qn("w:space"), "24")
+        el.set(qn("w:color"), "0D47A1")
+        vien.append(el)
+    section._sectPr.find(qn("w:pgMar")).addnext(vien)
+
+
+def danh_so_tu_dau(section):
+    so = OxmlElement("w:pgNumType")
+    so.set(qn("w:start"), "1")
+    cols = section._sectPr.find(qn("w:cols"))
+    if cols is not None:
+        cols.addprevious(so)
+    else:
+        section._sectPr.append(so)
+
+
+def dong_bia(doc, van_ban, co, dam=True, nghieng=False, mau=None, truoc=0, sau=0):
+    p = doan(doc, van_ban, dam=dam, nghieng=nghieng, can=WD_ALIGN_PARAGRAPH.CENTER, co=co)
+    p.paragraph_format.space_before = Pt(truoc)
+    p.paragraph_format.space_after = Pt(sau)
+    p.paragraph_format.line_spacing = 1.0
+    if mau:
+        p.runs[0].font.color.rgb = mau
+    return p
+
+
 def trang_bia(doc):
-    for _ in range(3):
-        doc.add_paragraph()
-    doan(doc, "BÁO CÁO BÀI TẬP", dam=True, can=WD_ALIGN_PARAGRAPH.CENTER, co=22)
-    doan(doc, "MÔN HỌC: HỌC SÂU (DEEP LEARNING)", dam=True, can=WD_ALIGN_PARAGRAPH.CENTER, co=16)
-    doc.add_paragraph()
-    doan(doc, "BÀI TẬP 02", dam=True, can=WD_ALIGN_PARAGRAPH.CENTER, co=18)
-    doan(doc, "HỒI QUY LOGISTIC VÀ ĐỒ THỊ TÍNH TOÁN", dam=True, can=WD_ALIGN_PARAGRAPH.CENTER, co=20).runs[0].font.color.rgb = MAU_TIEU_DE
-    doan(doc, "(Logistic Regression & Computation Graph)", nghieng=True, can=WD_ALIGN_PARAGRAPH.CENTER, co=14)
-    for _ in range(5):
-        doc.add_paragraph()
+    dong_bia(doc, "TRƯỜNG ĐẠI HỌC SÀI GÒN", 15, sau=2)
+    dong_bia(doc, "KHOA CÔNG NGHỆ THÔNG TIN", 14)
+    dong_bia(doc, "──────── o0o ────────", 12, dam=False, sau=18)
+    doc.add_picture(str(cat_logo()), width=Cm(5))
+    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+    dong_bia(doc, "MÔN HỌC: HỌC SÂU (DEEP LEARNING)", 15, truoc=24, sau=24)
+    dong_bia(doc, "BÁO CÁO BÀI TẬP 02", 20, sau=8)
+    dong_bia(doc, "HỒI QUY LOGISTIC", 24, mau=MAU_TIEU_DE)
+    dong_bia(doc, "VÀ ĐỒ THỊ TÍNH TOÁN", 24, mau=MAU_TIEU_DE, sau=6)
+    dong_bia(doc, "(Logistic Regression & Computation Graph)", 14, dam=False, nghieng=True, sau=80)
     t = doc.add_table(rows=3, cols=2)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
-    for i, (nhan, gt) in enumerate((("Họ và tên sinh viên:", HO_TEN), ("Mã số sinh viên:", MA_SV), ("Mã nguồn:", "github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231\n(nhánh BT02_ComputationGraph)"))):
+    for i, (nhan, gt) in enumerate((("Sinh viên thực hiện:", HO_TEN), ("Mã số sinh viên:", MA_SV), ("Mã nguồn:", "github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231\n(nhánh BT02_ComputationGraph)"))):
         t.rows[i].cells[0].text = ""
         r = t.rows[i].cells[0].paragraphs[0].add_run(nhan)
         r.bold = True
         r.font.size = Pt(14)
         t.rows[i].cells[1].text = ""
         r = t.rows[i].cells[1].paragraphs[0].add_run(gt)
-        r.font.size = Pt(14)
-        t.rows[i].cells[0].width = Cm(5.5)
+        r.font.size = Pt(14 if i < 2 else 12)
+        r.bold = i == 0
+        t.rows[i].cells[0].width = Cm(5)
         t.rows[i].cells[1].width = Cm(10)
-    for _ in range(8):
-        doc.add_paragraph()
-    doan(doc, f"Tháng {date.today().month} năm {date.today().year}", nghieng=True, can=WD_ALIGN_PARAGRAPH.CENTER, co=13)
-    doc.add_page_break()
+    dong_bia(doc, f"TP. Hồ Chí Minh, tháng {date.today().month} năm {date.today().year}", 13, dam=False, nghieng=True, truoc=110)
+    doc.add_section(WD_SECTION.NEW_PAGE)
+    bia = doc.sections[0]
+    khung_trang(bia)
+    bia.different_first_page_header_footer = True
+    danh_so_tu_dau(doc.sections[1])
 
 
 def chung_minh_gradient(doc, tham_so_cat, tham_so_trong, bien_x):
@@ -511,8 +563,11 @@ def main():
     print("Đã tạo:", duong_dan)
     thu_muc_nop = THU_MUC.parent.parent
     if thu_muc_nop.exists():
-        shutil.copy2(duong_dan, thu_muc_nop / TEN_FILE)
-        print("Đã sao chép:", thu_muc_nop / TEN_FILE)
+        try:
+            shutil.copy2(duong_dan, thu_muc_nop / TEN_FILE)
+            print("Đã sao chép:", thu_muc_nop / TEN_FILE)
+        except PermissionError:
+            print("Không sao chép được vì file đang mở:", thu_muc_nop / TEN_FILE)
 
 
 if __name__ == "__main__":
