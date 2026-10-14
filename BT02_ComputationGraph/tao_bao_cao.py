@@ -22,7 +22,7 @@ MA_SV = "3123580023"
 TEN_FILE = "BT02_ComputationGraph_VoTuongLong_3123580023.docx"
 REPO = "https://github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231/tree/BT02_ComputationGraph"
 THU_MUC = Path(__file__).resolve().parent
-MAU_TIEU_DE = RGBColor(0x0D, 0x47, 0xA1)
+MAU_TIEU_DE = RGBColor(0x00, 0x00, 0x00)
 LOGO = THU_MUC / "hinh" / "logoSGU.jpg"
 
 
@@ -30,13 +30,29 @@ def f(x, n=6):
     return f"{x:.{n}f}"
 
 
-def to_mau_o(o, mau):
-    tc_pr = o._tc.get_or_add_tcPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:val"), "clear")
-    shd.set(qn("w:color"), "auto")
-    shd.set(qn("w:fill"), mau)
-    tc_pr.append(shd)
+def muc_luc(doc):
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(12)
+    r = p.add_run("MỤC LỤC")
+    r.bold = True
+    r.font.size = Pt(16)
+    p = doc.add_paragraph()
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing = Pt(1)
+    run = p.add_run()
+    for loai, noi_dung in (("begin", None), (None, 'TOC \\o "1-2" \\h \\z \\u'), ("separate", None), ("text", "Nhấn chuột phải vào đây và chọn Update Field để cập nhật mục lục."), ("end", None)):
+        if loai == "text":
+            el = OxmlElement("w:t")
+            el.text = noi_dung
+        elif loai:
+            el = OxmlElement("w:fldChar")
+            el.set(qn("w:fldCharType"), loai)
+        else:
+            el = OxmlElement("w:instrText")
+            el.set(qn("xml:space"), "preserve")
+            el.text = noi_dung
+        run._r.append(el)
 
 
 def cai_dat_tai_lieu(doc):
@@ -125,7 +141,6 @@ def bang(doc, tieu_de_cot, cac_dong, do_rong=None, chu_nho=False):
         r.bold = True
         r.font.size = Pt(10 if chu_nho else 11)
         o.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-        to_mau_o(o, "DCE6F1")
     for dong in cac_dong:
         cells = t.add_row().cells
         for i, gt in enumerate(dong):
@@ -151,7 +166,6 @@ def khoi_code(doc, ma):
     t = doc.add_table(rows=1, cols=1)
     t.style = "Table Grid"
     o = t.rows[0].cells[0]
-    to_mau_o(o, "F5F5F5")
     o.text = ""
     p = o.paragraphs[0]
     p.paragraph_format.line_spacing = 1.0
@@ -273,7 +287,7 @@ def bang_buoc_bai1(doc, buoc):
 def viet_bai1(doc):
     ls = bai1.huan_luyen(2)
     b0, b1, b2 = ls
-    doc.add_heading("BÀI 1. HỒI QUY LOGISTIC PHÂN LOẠI GIỚI TÍNH TRẺ SƠ SINH", level=1)
+    doc.add_heading("BÀI 1. HỒI QUY LOGISTIC PHÂN LOẠI GIỚI TÍNH TRẺ SƠ SINH", level=1).paragraph_format.page_break_before = True
     doan(doc, "Dữ liệu: x = (2.4; 3.3; 3.2; 2.5) kg, y = (0; 1; 1; 0) với 0 là Nữ, 1 là Nam (đề ghi nhầm “0 là nam”, theo bảng dữ liệu thì Nam có nhãn 1). Mô hình ŷ = σ(θ₀ + θ₁x), m = 4, khởi tạo θ₀⁽⁰⁾ = θ₁⁽⁰⁾ = 0.5, α = 0.2.")
 
     doc.add_heading("a) Đầu vào tuyến tính zᵢ và xác suất dự đoán ŷᵢ", level=2)
@@ -554,6 +568,7 @@ def main():
     cai_dat_tai_lieu(doc)
     them_so_trang(doc)
     trang_bia(doc)
+    muc_luc(doc)
     viet_bai1(doc)
     viet_bai2(doc)
     viet_bai3(doc)
