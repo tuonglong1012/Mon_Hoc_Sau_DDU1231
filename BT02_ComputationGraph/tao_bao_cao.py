@@ -1,5 +1,4 @@
 import inspect
-import shutil
 from datetime import date
 from pathlib import Path
 
@@ -216,7 +215,7 @@ def dong_bia(doc, van_ban, co, dam=True, nghieng=False, mau=None, truoc=0, sau=0
 
 def trang_bia(doc):
     dong_bia(doc, "TRƯỜNG ĐẠI HỌC SÀI GÒN", 15, sau=2)
-    dong_bia(doc, "KHOA CÔNG NGHỆ THÔNG TIN", 14)
+    dong_bia(doc, "KHOA TOÁN ỨNG DỤNG", 14)
     dong_bia(doc, "──────── o0o ────────", 12, dam=False, sau=18)
     doc.add_picture(str(cat_logo()), width=Cm(5))
     doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -558,16 +557,9 @@ def main():
     viet_bai2(doc)
     viet_bai3(doc)
     phu_luc(doc)
-    duong_dan = THU_MUC / TEN_FILE
+    duong_dan = THU_MUC.parent.parent / TEN_FILE
     doc.save(duong_dan)
     print("Đã tạo:", duong_dan)
-    thu_muc_nop = THU_MUC.parent.parent
-    if thu_muc_nop.exists():
-        try:
-            shutil.copy2(duong_dan, thu_muc_nop / TEN_FILE)
-            print("Đã sao chép:", thu_muc_nop / TEN_FILE)
-        except PermissionError:
-            print("Không sao chép được vì file đang mở:", thu_muc_nop / TEN_FILE)
 
 
 if __name__ == "__main__":
