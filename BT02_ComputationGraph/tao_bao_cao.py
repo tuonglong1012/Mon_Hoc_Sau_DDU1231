@@ -17,6 +17,7 @@ import bai2_logistic_danh_gia_phim as bai2
 import bai3_lan_truyen_nguoc as bai3
 
 HO_TEN = "Võ Tường Long"
+GIANG_VIEN = "Đỗ Như Tài"
 MA_SV = "3123580023"
 TEN_FILE = "BT02_ComputationGraph_VoTuongLong_3123580023.docx"
 REPO = "https://github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231/tree/BT02_ComputationGraph"
@@ -188,7 +189,7 @@ def khung_trang(section):
         el.set(qn("w:val"), "thinThickSmallGap")
         el.set(qn("w:sz"), "24")
         el.set(qn("w:space"), "24")
-        el.set(qn("w:color"), "0D47A1")
+        el.set(qn("w:color"), "000000")
         vien.append(el)
     section._sectPr.find(qn("w:pgMar")).addnext(vien)
 
@@ -224,18 +225,18 @@ def trang_bia(doc):
     dong_bia(doc, "HỒI QUY LOGISTIC", 24, mau=MAU_TIEU_DE)
     dong_bia(doc, "VÀ ĐỒ THỊ TÍNH TOÁN", 24, mau=MAU_TIEU_DE, sau=6)
     dong_bia(doc, "(Logistic Regression & Computation Graph)", 14, dam=False, nghieng=True, sau=80)
-    t = doc.add_table(rows=3, cols=2)
+    t = doc.add_table(rows=4, cols=2)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
-    for i, (nhan, gt) in enumerate((("Sinh viên thực hiện:", HO_TEN), ("Mã số sinh viên:", MA_SV), ("Mã nguồn:", "github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231\n(nhánh BT02_ComputationGraph)"))):
+    for i, (nhan, gt) in enumerate((("Giảng viên hướng dẫn:", GIANG_VIEN), ("Sinh viên thực hiện:", HO_TEN), ("Mã số sinh viên:", MA_SV), ("Mã nguồn:", "github.com/tuonglong1012/Mon_Hoc_Sau_DDU1231\n(nhánh BT02_ComputationGraph)"))):
         t.rows[i].cells[0].text = ""
         r = t.rows[i].cells[0].paragraphs[0].add_run(nhan)
         r.bold = True
         r.font.size = Pt(14)
         t.rows[i].cells[1].text = ""
         r = t.rows[i].cells[1].paragraphs[0].add_run(gt)
-        r.font.size = Pt(14 if i < 2 else 12)
-        r.bold = i == 0
-        t.rows[i].cells[0].width = Cm(5)
+        r.font.size = Pt(14 if i < 3 else 12)
+        r.bold = i < 2
+        t.rows[i].cells[0].width = Cm(6)
         t.rows[i].cells[1].width = Cm(10)
     dong_bia(doc, f"TP. Hồ Chí Minh, tháng {date.today().month} năm {date.today().year}", 13, dam=False, nghieng=True, truoc=110)
     doc.add_section(WD_SECTION.NEW_PAGE)
