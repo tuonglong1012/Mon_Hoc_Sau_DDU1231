@@ -547,7 +547,7 @@ def viet_bai3(doc):
 def phu_luc(doc):
     doc.add_page_break()
     doc.add_heading("PHỤ LỤC. MÃ NGUỒN", level=1)
-    doan(doc, f"Toàn bộ mã nguồn nằm trong thư mục BT02_ComputationGraph trên nhánh BT02_ComputationGraph của kho: {REPO}")
+    doan(doc, f"Toàn bộ mã nguồn nằm trong thư mục BT02_ComputationGraph_VoTuongLong_3123580023 trên nhánh BT02_ComputationGraph của kho: {REPO}")
     bang(
         doc,
         ["File", "Nội dung"],
